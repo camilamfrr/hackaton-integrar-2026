@@ -263,6 +263,29 @@ body {
   color: var(--ink-muted);
 }
 
+.game-modal--rejected {
+  border-color: var(--state-error);
+}
+
+.modal-tag--error {
+  color: var(--state-error);
+}
+
+.rejected-reason {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(168, 60, 50, 0.12);
+  border-left: 3px solid var(--state-error);
+  color: #4f1a15;
+  font-weight: 600;
+}
+
+.rejected-tip {
+  font-size: 0.94rem;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
 .victory-quote {
   font-size: 1.15rem;
   font-weight: 600;

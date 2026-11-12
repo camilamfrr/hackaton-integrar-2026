@@ -43,6 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const victorySummary = document.getElementById("victory-summary");
   const btnRestartGame = document.getElementById("btn-restart-game");
 
+  const modalRejected = document.getElementById("modal-rejected");
+  const rejectedTitle = document.getElementById("rejected-title");
+  const rejectedMessage = document.getElementById("rejected-message");
+  const rejectedTip = document.getElementById("rejected-tip");
+  const btnCloseRejected = document.getElementById("btn-close-rejected");
+
   const gameToast = document.getElementById("game-toast");
   let toastTimeoutId = null;
 
@@ -56,7 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function isModalOpen() {
-    return !modalIntro.hidden || !modalDelivery.hidden || !modalVictory.hidden;
+    return (
+      !modalIntro.hidden ||
+      !modalDelivery.hidden ||
+      !modalVictory.hidden ||
+      !modalRejected.hidden
+    );
   }
 
   function syncKeyboardLock() {
@@ -131,6 +142,20 @@ document.addEventListener("DOMContentLoaded", () => {
       modalDelivery.hidden = false;
       syncKeyboardLock();
       btnDeliverOne.focus();
+    },
+    openRejectionModal(access) {
+      const titlesByCode = {
+        WINGS_NOT_COLLECTED: "Sin Alitas de Cotillón",
+        WINGS_NOT_EQUIPPED: "Alitas Guardadas en la Mochila",
+        INVALID_WORD: "Conjuro CHUNKERO Incorrecto",
+        MISSING_BOTH: "Faltan Alitas y Palabra Mágica",
+      };
+      rejectedTitle.textContent = titlesByCode[access.reasonCode] || "Portal Rechazado";
+      rejectedMessage.textContent = access.message;
+      rejectedTip.textContent = `Estabilidad dimensional al ${STABILITY_PROBABILITY}: tu pedido de ${missionState.requestedCount} panchos sigue intacto. Podés volver a intentarlo.`;
+      modalRejected.hidden = false;
+      syncKeyboardLock();
+      btnCloseRejected.focus();
     },
   };
 
@@ -221,6 +246,11 @@ document.addEventListener("DOMContentLoaded", () => {
     syncKeyboardLock();
   });
 
+  btnCloseRejected.addEventListener("click", () => {
+    modalRejected.hidden = true;
+    syncKeyboardLock();
+  });
+
   btnRestartGame.addEventListener("click", () => {
     missionState = createMissionState();
     game.registry.set("missionState", missionState);
@@ -231,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
     prepBar.hidden = true;
     modalVictory.hidden = true;
     modalDelivery.hidden = true;
+    modalRejected.hidden = true;
     modalIntro.hidden = false;
 
     updateHUD();

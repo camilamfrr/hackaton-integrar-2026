@@ -144,6 +144,26 @@
             </button>
           </div>
         </section>
+
+        <!-- Modal Rechazo del Portal (Estado de fracaso recuperable) -->
+        <section
+          class="game-modal game-modal--rejected"
+          id="modal-rejected"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rejected-title"
+          hidden
+        >
+          <p class="modal-tag modal-tag--error">Portal Sellado · Rechazo Dimensional</p>
+          <h2 id="rejected-title">Acceso Denegado</h2>
+          <p class="rejected-reason" id="rejected-message"></p>
+          <p class="rejected-tip" id="rejected-tip"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn-game-primary" id="btn-close-rejected">
+              VOLVER A INTENTARLO
+            </button>
+          </div>
+        </section>
       </main>
 
       <!-- Barra de Preparación (Palabra Mágica) + Controles siempre visibles -->
