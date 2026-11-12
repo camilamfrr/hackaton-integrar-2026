@@ -279,6 +279,109 @@ body {
   color: #1f4d3a;
 }
 
+.game-modal--victory {
+  width: min(94%, 600px);
+  padding: 1rem 1.35rem;
+}
+
+.game-modal--victory h2 {
+  font-size: 1.18rem;
+  margin-bottom: 0.25rem;
+}
+
+.game-modal--victory p {
+  margin-bottom: 0.35rem;
+  font-size: 0.96rem;
+}
+
+.official-receipt {
+  margin: 0.45rem 0 0.2rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(255, 250, 240, 0.85);
+  border: 1.5px solid var(--accent-gold);
+  box-shadow: inset 0 0 0 2px rgba(31, 61, 45, 0.12);
+}
+
+.receipt-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-bottom: 0.45rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(212, 162, 76, 0.55);
+}
+
+.receipt-header strong {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  color: #1f3d2d;
+}
+
+.receipt-header span {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+.receipt-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.65rem;
+}
+
+.receipt-details > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.receipt-details dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+}
+
+.receipt-details dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-dark);
+}
+
+.receipt-auth {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(124, 86, 40, 0.4);
+}
+
+.receipt-seal,
+.receipt-signature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.receipt-seal span {
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #1f5f47;
+  letter-spacing: 0.05em;
+}
+
+.receipt-signature span {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1f3d2d;
+}
+
 .modal-actions {
   display: flex;
   flex-wrap: wrap;

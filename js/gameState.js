@@ -211,3 +211,39 @@ export function deliverOnePancho(state) {
     message: `¡Entregaste 1 pancho con papitas! Todavía faltan ${pending}.`,
   };
 }
+
+/**
+ * Construye los datos del Comprobante Oficial de Entrega del Reino Fae.
+ * Solo se emite cuando el pedido fue completado exactamente.
+ */
+export function buildOfficialReceipt(state, issuedAt = new Date()) {
+  if (
+    !state ||
+    !state.missionCompleted ||
+    state.deliveredCount !== state.requestedCount ||
+    state.requestedCount <= 0
+  ) {
+    return null;
+  }
+
+  const formattedDate = issuedAt.toLocaleString("es-AR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  return {
+    title: "COMPROBANTE OFICIAL DE ENTREGA — REINO FAE",
+    project: "CHUNKERO — The Fae Delivery Quest",
+    recipient: state.fairyName,
+    requestedCount: state.requestedCount,
+    deliveredCount: state.deliveredCount,
+    status: "ENTREGA COMPLETADA",
+    issuedAtText: formattedDate,
+    signatureName: state.fairyName,
+    sealText: "SELLO OFICIAL · REINO FAE",
+  };
+}

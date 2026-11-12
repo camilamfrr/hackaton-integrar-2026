@@ -1,10 +1,12 @@
 import {
+  buildOfficialReceipt,
   createMissionState,
   deliverOnePancho,
   getCocaColaRemainingSeconds,
   getPendingCount,
   submitMagicWord,
 } from "./gameState.js";
+import { downloadReceiptPdf } from "./pdfGenerator.js";
 import { PrepAndPortalScene } from "./scenes/PrepAndPortalScene.js";
 import { FaeRealmScene } from "./scenes/FaeRealmScene.js";
 
@@ -39,7 +41,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const modalVictory = document.getElementById("modal-victory");
   const victorySummary = document.getElementById("victory-summary");
+  const btnDownloadPdf = document.getElementById("btn-download-pdf");
   const btnRestartGame = document.getElementById("btn-restart-game");
+
+  const receiptRecipient = document.getElementById("receipt-recipient");
+  const receiptRequested = document.getElementById("receipt-requested");
+  const receiptDelivered = document.getElementById("receipt-delivered");
+  const receiptStatus = document.getElementById("receipt-status");
+  const receiptDate = document.getElementById("receipt-date");
+  const receiptSignatureName = document.getElementById("receipt-signature-name");
+
+  let currentReceipt = null;
 
   const modalRejected = document.getElementById("modal-rejected");
   const rejectedTitle = document.getElementById("rejected-title");
@@ -245,14 +257,23 @@ document.addEventListener("DOMContentLoaded", () => {
     deliveryFeedback.textContent = res.message;
 
     if (res.completed) {
+      currentReceipt = buildOfficialReceipt(missionState);
+      if (currentReceipt) {
+        receiptRecipient.textContent = currentReceipt.recipient;
+        receiptRequested.textContent = String(currentReceipt.requestedCount);
+        receiptDelivered.textContent = String(currentReceipt.deliveredCount);
+        receiptStatus.textContent = currentReceipt.status;
+        receiptDate.textContent = currentReceipt.issuedAtText;
+        receiptSignatureName.textContent = currentReceipt.signatureName;
+      }
       modalDelivery.hidden = true;
-      victorySummary.textContent = `Entregaste los ${missionState.requestedCount} panchos con papitas a ${missionState.fairyName} sin convertirte en helecho.`;
+      victorySummary.textContent = `Entregaste los ${missionState.requestedCount} panchos con papitas a ${missionState.fairyName}.`;
       modalVictory.hidden = false;
       syncKeyboardLock();
       if (scene) {
         scene.events.emit("mission-completed");
       }
-      btnRestartGame.focus();
+      btnDownloadPdf.focus();
     }
   });
 
@@ -270,8 +291,18 @@ document.addEventListener("DOMContentLoaded", () => {
     syncKeyboardLock();
   });
 
+  btnDownloadPdf.addEventListener("click", () => {
+    if (!currentReceipt) {
+      showToast("El comprobante solo se emite al completar exactamente el pedido.", "error");
+      return;
+    }
+    downloadReceiptPdf(currentReceipt);
+    showToast("Comprobante oficial PDF descargado.", "success");
+  });
+
   btnRestartGame.addEventListener("click", () => {
     missionState = createMissionState();
+    currentReceipt = null;
     lastPowerActive = false;
     lastPowerText = "";
     game.registry.set("missionState", missionState);

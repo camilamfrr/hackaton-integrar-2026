@@ -122,9 +122,9 @@
           </div>
         </section>
 
-        <!-- Modal Final: Misión Completada -->
+        <!-- Modal Final: Misión Completada + Comprobante Oficial -->
         <section
-          class="game-modal"
+          class="game-modal game-modal--victory"
           id="modal-victory"
           role="dialog"
           aria-modal="true"
@@ -135,7 +135,74 @@
           <h2 id="victory-title">¡DELIVERY INTERDIMENSIONAL COMPLETADO!</h2>
           <p class="victory-quote">El Reino Fae vuelve a ser feliz.</p>
           <p id="victory-summary"></p>
+
+          <div class="official-receipt" id="official-receipt">
+            <div class="receipt-header">
+              <strong id="receipt-title">COMPROBANTE OFICIAL DE ENTREGA — REINO FAE</strong>
+              <span id="receipt-project">CHUNKERO — The Fae Delivery Quest</span>
+            </div>
+
+            <dl class="receipt-details">
+              <div>
+                <dt>Destinataria</dt>
+                <dd id="receipt-recipient">Lumina del Claro</dd>
+              </div>
+              <div>
+                <dt>Solicitados</dt>
+                <dd id="receipt-requested">0</dd>
+              </div>
+              <div>
+                <dt>Entregados</dt>
+                <dd id="receipt-delivered">0</dd>
+              </div>
+              <div>
+                <dt>Estado</dt>
+                <dd id="receipt-status">ENTREGA COMPLETADA</dd>
+              </div>
+              <div>
+                <dt>Emisión</dt>
+                <dd id="receipt-date">--</dd>
+              </div>
+            </dl>
+
+            <div class="receipt-auth">
+              <!-- Sello mágico del Reino Fae -->
+              <div class="receipt-seal" aria-label="Sello mágico del Reino Fae">
+                <svg viewBox="0 0 80 80" width="58" height="58" aria-hidden="true">
+                  <circle cx="40" cy="40" r="35" fill="none" stroke="#1f5f47" stroke-width="2.5" />
+                  <circle cx="40" cy="40" r="28" fill="none" stroke="#d4a24c" stroke-width="1.5" stroke-dasharray="3 3" />
+                  <path d="M40 16 L45 35 L64 40 L45 45 L40 64 L35 45 L16 40 L35 35 Z" fill="#d4a24c" />
+                </svg>
+                <span>SELLO REINO FAE</span>
+              </div>
+
+              <!-- Firma ficticia de Lumina del Claro -->
+              <div class="receipt-signature">
+                <svg viewBox="0 0 180 48" width="150" height="40" aria-label="Firma artística de Lumina del Claro">
+                  <path
+                    d="M12,30 C24,8 36,42 52,18 C64,4 72,38 88,20 C102,8 112,36 128,22 C142,10 156,30 170,22"
+                    fill="none"
+                    stroke="#1f3d2d"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M22,38 Q90,34 158,39"
+                    fill="none"
+                    stroke="#d4a24c"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span id="receipt-signature-name">Lumina del Claro</span>
+              </div>
+            </div>
+          </div>
+
           <div class="modal-actions">
+            <button type="button" class="btn-game-secondary" id="btn-download-pdf">
+              DESCARGAR COMPROBANTE PDF
+            </button>
             <button type="button" class="btn-game-primary" id="btn-restart-game">
               JUGAR OTRA MISIÓN
             </button>
