@@ -3,7 +3,6 @@ import { PlayerController } from "../playerController.js";
 import {
   collectWings,
   evaluatePortalAccess,
-  STABILITY_PROBABILITY,
   toggleWings,
 } from "../gameState.js";
 
@@ -119,20 +118,6 @@ export class PrepAndPortalScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-    // Indicador de estabilidad dimensional junto al portal (estética pixel art / fantasía)
-    const stabilityBox = this.add
-      .rectangle(this.portalX, this.portalY + 80, 174, 34, 0x09140f, 0.92)
-      .setStrokeStyle(2, 0xd4a24c)
-      .setDepth(19);
-    this.stabilityBadgeText = this.add
-      .text(stabilityBox.x, stabilityBox.y, `Estabilidad: ${STABILITY_PROBABILITY}`, {
-        fontFamily: "Cinzel, Georgia, serif",
-        fontSize: "12px",
-        color: "#f6d37a",
-      })
-      .setOrigin(0.5)
-      .setDepth(20);
-
     // Repartidor controlable (inicia sin alitas)
     this.player = new PlayerController(this, 155, height / 2 + 12, state.wingsEquipped);
     this.physics.add.collider(this.player.sprite, this.obstacles);
@@ -158,6 +143,11 @@ export class PrepAndPortalScene extends Phaser.Scene {
 
     this.events.on("modal-toggled", (isOpen) => {
       this.player.setMovementLocked(isOpen);
+    });
+
+    this.events.on("restore-human-form", () => {
+      state.transformedIntoFern = false;
+      this.player.setFernForm(false, state.wingsEquipped);
     });
 
     this.cameras.main.fadeIn(350, 9, 20, 15);
@@ -245,7 +235,16 @@ export class PrepAndPortalScene extends Phaser.Scene {
       this.player.sprite.x -= 28;
       if (now - this.lastBlockFeedbackAt > 600) {
         this.lastBlockFeedbackAt = now;
-        uiBridge.openRejectionModal(access);
+        if (access.transformsToFern) {
+          state.transformedIntoFern = true;
+          this.player.setFernForm(true, state.wingsEquipped);
+          this.player.setMovementLocked(true);
+          this.time.delayedCall(260, () => {
+            uiBridge.openRejectionModal(access);
+          });
+        } else {
+          uiBridge.openRejectionModal(access);
+        }
       }
       return;
     }

@@ -98,23 +98,6 @@ body {
   color: var(--portal-emerald);
 }
 
-.hud-stability {
-  grid-column: span 2;
-}
-
-.hud-sub {
-  font-size: 0.8rem;
-  color: #cbbda3;
-  font-style: italic;
-  line-height: 1.25;
-}
-
-@media (max-width: 680px) {
-  .hud-stability {
-    grid-column: span 1;
-  }
-}
-
 /* Contenedor del Canvas Phaser */
 .viewport-frame {
   position: relative;

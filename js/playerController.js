@@ -14,6 +14,7 @@ export class PlayerController {
     this.scene = scene;
     this.speed = 185;
     this.movementLocked = false;
+    this.isFern = false;
     this.facing = "down";
 
     // Sprite 32x32 escalado x2 = 64x64px
@@ -74,6 +75,43 @@ export class PlayerController {
       this.sprite.setVelocity(0, 0);
       this.sprite.anims.stop();
     }
+  }
+
+  /**
+   * Transforma visualmente al repartidor en un helecho o restaura su forma humana.
+   */
+  setFernForm(isFern, wingsEquipped = false) {
+    this.isFern = Boolean(isFern);
+    if (this.isFern) {
+      this.sprite.anims.stop();
+      this.sprite.setTexture("fern");
+      this.wings.setVisible(false);
+
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: 2.35,
+        scaleY: 2.35,
+        duration: 140,
+        yoyo: true,
+        ease: "Quad.easeOut",
+      });
+
+      const burst = this.scene.add.particles(this.sprite.x, this.sprite.y, "sparkle", {
+        speed: { min: 35, max: 95 },
+        scale: { start: 2, end: 0 },
+        lifespan: 450,
+        quantity: 14,
+        emitting: false,
+      });
+      burst.setDepth(20);
+      burst.explode(14);
+      this.scene.time.delayedCall(500, () => burst.destroy());
+      return;
+    }
+
+    const frameByFacing = { down: 0, up: 2, left: 4, right: 6 };
+    this.sprite.setTexture("player", frameByFacing[this.facing] ?? 0);
+    this.wings.setVisible(Boolean(wingsEquipped));
   }
 
   update() {

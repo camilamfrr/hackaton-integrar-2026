@@ -3,8 +3,6 @@ import {
   deliverOnePancho,
   getPendingCount,
   submitMagicWord,
-  STABILITY_DESCRIPTION,
-  STABILITY_PROBABILITY,
 } from "./gameState.js";
 import { PrepAndPortalScene } from "./scenes/PrepAndPortalScene.js";
 import { FaeRealmScene } from "./scenes/FaeRealmScene.js";
@@ -17,8 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const hudPending = document.getElementById("hud-pending");
   const hudWings = document.getElementById("hud-wings");
   const hudPortal = document.getElementById("hud-portal");
-  const hudStabilityValue = document.getElementById("hud-stability-value");
-  const hudStabilityDesc = document.getElementById("hud-stability-desc");
 
   const prepBar = document.getElementById("prep-bar");
   const magicWordForm = document.getElementById("magic-word-form");
@@ -51,9 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const gameToast = document.getElementById("game-toast");
   let toastTimeoutId = null;
-
-  hudStabilityValue.textContent = STABILITY_PROBABILITY;
-  hudStabilityDesc.textContent = STABILITY_DESCRIPTION;
 
   function getActiveScene() {
     if (!window.chunkeroGame) return null;
@@ -145,14 +138,16 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     openRejectionModal(access) {
       const titlesByCode = {
-        WINGS_NOT_COLLECTED: "Sin Alitas de Cotillón",
-        WINGS_NOT_EQUIPPED: "Alitas Guardadas en la Mochila",
+        WINGS_NOT_COLLECTED: "¡Te convertiste en un helecho!",
+        WINGS_NOT_EQUIPPED: "¡Te convertiste en un helecho!",
+        MISSING_BOTH: "¡Te convertiste en un helecho!",
         INVALID_WORD: "Conjuro CHUNKERO Incorrecto",
-        MISSING_BOTH: "Faltan Alitas y Palabra Mágica",
       };
       rejectedTitle.textContent = titlesByCode[access.reasonCode] || "Portal Rechazado";
       rejectedMessage.textContent = access.message;
-      rejectedTip.textContent = `Estabilidad dimensional al ${STABILITY_PROBABILITY}: tu pedido de ${missionState.requestedCount} panchos sigue intacto. Podés volver a intentarlo.`;
+      rejectedTip.textContent = access.transformsToFern
+        ? `Tu pedido de ${missionState.requestedCount} panchos y tus objetos siguen intactos. Al reintentar recuperarás tu forma humana.`
+        : `Tus alitas evitaron la transformación en helecho. Tu pedido de ${missionState.requestedCount} panchos sigue intacto.`;
       modalRejected.hidden = false;
       syncKeyboardLock();
       btnCloseRejected.focus();
@@ -248,6 +243,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnCloseRejected.addEventListener("click", () => {
     modalRejected.hidden = true;
+    const scene = getActiveScene();
+    if (scene) {
+      scene.events.emit("restore-human-form");
+    }
     syncKeyboardLock();
   });
 

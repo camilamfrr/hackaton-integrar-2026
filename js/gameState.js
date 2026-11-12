@@ -4,10 +4,6 @@
  */
 
 export const MAGIC_WORD = "CHUNKERO";
-export const STABILITY_PROBABILITY = "73,84291 %";
-export const STABILITY_DESCRIPTION =
-  "Probabilidad de atravesar el portal sin convertirse accidentalmente en un helecho.";
-
 export const FAIRY_NAME = "Lumina del Claro";
 export const ORDER_QUANTITIES = [2, 3, 5];
 
@@ -35,6 +31,7 @@ export function createMissionState(forcedQuantity) {
     wingsEquipped: false,
     magicWordValid: false,
     lastWordAttempt: "",
+    transformedIntoFern: false,
     portalOpen: false,
     inFaeRealm: false,
     missionCompleted: false,
@@ -90,6 +87,7 @@ export function evaluatePortalAccess(state) {
   if (state.wingsEquipped && state.magicWordValid) {
     return {
       allowed: true,
+      transformsToFern: false,
       reasonCode: "OK",
       message:
         "¡Portal activado! Caminá hacia el umbral rúnico para cruzar al Reino Fae.",
@@ -99,37 +97,41 @@ export function evaluatePortalAccess(state) {
   if (!state.wingsCollected) {
     return {
       allowed: false,
+      transformsToFern: true,
       reasonCode: "WINGS_NOT_COLLECTED",
       message: state.magicWordValid
-        ? "La palabra CHUNKERO funcionó, pero primero tenés que buscar las alitas de cotillón por el escenario."
-        : "Primero buscá las alitas de cotillón en el claro y pronunciá la palabra CHUNKERO.",
+        ? "Intentaste cruzar sin alitas de cotillón y la magia del portal te convirtió en un helecho."
+        : "¡Incidente botánico! Sin alitas de cotillón ni la palabra CHUNKERO, el portal te transformó en un helecho.",
     };
   }
 
   if (!state.wingsEquipped && !state.magicWordValid) {
     return {
       allowed: false,
+      transformsToFern: true,
       reasonCode: "MISSING_BOTH",
       message:
-        "Tenés las alitas en la mochila: presioná E para equiparlas y escribí CHUNKERO.",
+        "Tenías las alitas guardadas en la mochila sin equipar y faltó CHUNKERO: el portal te convirtió en un helecho.",
     };
   }
 
   if (!state.wingsEquipped) {
     return {
       allowed: false,
+      transformsToFern: true,
       reasonCode: "WINGS_NOT_EQUIPPED",
       message:
-        "¡Ya tenés las alitas en el inventario! Presioná E para ponértelas antes de cruzar.",
+        "¡Te olvidaste de ponerte las alitas (tecla E)! Al cruzar sin ellas, el portal te convirtió en un helecho.",
     };
   }
 
   return {
     allowed: false,
+    transformsToFern: false,
     reasonCode: "INVALID_WORD",
     message: state.lastWordAttempt
-      ? `Tus alitas brillan genial, pero el portal escuchó "${state.lastWordAttempt}" en vez de CHUNKERO.`
-      : "Tus alitas están equipadas, pero falta escribir la palabra mágica CHUNKERO.",
+      ? `Tus alitas te protegieron de volverte helecho, pero el portal escuchó "${state.lastWordAttempt}" en vez de CHUNKERO.`
+      : "Tus alitas te protegieron de volverte helecho, pero falta ingresar la palabra mágica CHUNKERO.",
   };
 }
 

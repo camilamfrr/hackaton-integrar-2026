@@ -224,6 +224,26 @@ export function registerPixelAssets(scene) {
   createSpritesheetFromCanvas(scene, "fairy", 20, 20, 2, drawFairyFrame);
   createSpritesheetFromCanvas(scene, "portal", 48, 48, 4, drawPortalFrame);
 
+  // Helecho mágico (32x32) para la transformación al cruzar sin alitas
+  createCanvasTexture(scene, "fern", 32, 32, (ctx) => {
+    px(ctx, 8, 27, 16, 3, "rgba(0,0,0,0.35)");
+    // Base/tallo
+    px(ctx, 14, 21, 4, 7, "#24573d");
+    px(ctx, 13, 25, 6, 3, "#4f3727");
+    // Frondas laterales
+    px(ctx, 4, 17, 10, 4, "#2f855a");
+    px(ctx, 18, 17, 10, 4, "#2f855a");
+    px(ctx, 6, 13, 8, 4, "#3ca370");
+    px(ctx, 18, 13, 8, 4, "#3ca370");
+    // Fronda central alta
+    px(ctx, 13, 6, 6, 16, "#3ca370");
+    px(ctx, 10, 9, 12, 4, "#52c488");
+    px(ctx, 14, 4, 4, 3, "#7de2b8");
+    // Detalles de hojitas y destello
+    px(ctx, 5, 16, 2, 2, "#7de2b8");
+    px(ctx, 25, 16, 2, 2, "#7de2b8");
+  });
+
   // Objeto coleccionable de alitas de cotillón en el suelo (24x20)
   createCanvasTexture(scene, "wings_pickup", 24, 20, (ctx) => {
     px(ctx, 4, 16, 16, 3, "rgba(0,0,0,0.3)");
