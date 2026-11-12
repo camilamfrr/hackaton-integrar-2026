@@ -33,6 +33,11 @@
         </div>
 
         <div class="hud-block">
+          <span class="hud-label">Alitas</span>
+          <strong class="hud-value" id="hud-wings" data-equipped="false">Sin alitas</strong>
+        </div>
+
+        <div class="hud-block">
           <span class="hud-label">Portal</span>
           <strong class="hud-value" id="hud-portal" data-open="false">En preparación</strong>
         </div>
@@ -73,7 +78,7 @@
             palabra secreta <strong>CHUNKERO</strong>.
           </p>
           <p class="controls-hint">
-            Controles: <strong>Flechas</strong> o <strong>WASD</strong> para caminar · <strong>ESPACIO</strong> para interactuar.
+            Controles: <strong>Flechas / WASD</strong> para caminar · <strong>E</strong> para recoger/equipar alitas · <strong>ESPACIO</strong> para interactuar.
           </p>
           <div class="modal-actions">
             <button type="button" class="btn-game-primary" id="btn-accept-order">
@@ -141,13 +146,9 @@
         </section>
       </main>
 
-      <!-- Barra de Preparación (Nivel 2) + Controles siempre visibles -->
+      <!-- Barra de Preparación (Palabra Mágica) + Controles siempre visibles -->
       <footer class="game-footer">
         <section class="prep-bar" id="prep-bar" hidden aria-label="Preparación del repartidor">
-          <button type="button" class="btn-game-primary" id="btn-equip-wings">
-            PONERME ALITAS
-          </button>
-
           <form class="magic-word-form" id="magic-word-form">
             <label for="input-magic-word" class="sr-only">Palabra mágica</label>
             <input
@@ -163,14 +164,14 @@
           </form>
 
           <p class="prep-feedback" id="prep-feedback">
-            Equipate las alitas e ingresá CHUNKERO para activar el portal.
+            Buscá las alitas de cotillón en el claro (E para recoger y equipar) e ingresá CHUNKERO.
           </p>
         </section>
 
         <div class="controls-bar" aria-label="Controles del juego">
           <span><strong>Flechas / WASD:</strong> Mover repartidor</span>
+          <span><strong>E:</strong> Recoger / Equipar alitas</span>
           <span><strong>ESPACIO:</strong> Interactuar con el hada</span>
-          <span><strong>Objetivo:</strong> Preparate, cruzá el portal y entregá todos los panchos</span>
         </div>
       </footer>
     </div>

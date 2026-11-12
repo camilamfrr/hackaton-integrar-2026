@@ -16,7 +16,8 @@ Durante el cruce, un antiguo indicador dimensional advierte:
 ## Mecánicas
 
 - **Pedido variable:** Cada misión solicita una cantidad aleatoria (`2`, `3` o `5` panchos con papitas) que persiste durante toda la partida.
-- **Preparación:** Botón **PONERME ALITAS** (equipa visualmente las alitas con animación y destellos sobre el personaje) + validación de la palabra mágica `CHUNKERO` (ignora mayúsculas y espacios exteriores).
+- **Búsqueda y equipamiento de alitas:** El repartidor comienza sin alitas (llevando su uniforme y mochila térmica roja de **PedidosYa**). Debe recorrer el claro para encontrar las alitas en el suelo, acercarse y presionar **`E`** para recogerlas, y luego presionar **`E`** para equiparlas o quitarlas en su espalda.
+- **Palabra mágica:** Validación de `CHUNKERO` (ignora mayúsculas y espacios exteriores).
 - **Portal Interdimensional:** Bloquea el paso con mensajes graciosos si falta algún requisito; al activarse, abre su vórtice de energía y transporta al jugador al Reino Fae.
 - **Exploración y colisiones:** Mapa top-down con árboles, hongos gigantes, flores luminosas y casas fantásticas con colisión física.
 - **Entrega progresiva:** Al acercarse al hada y presionar `ESPACIO`, se abre el diálogo de entrega para entregar los panchos uno por uno hasta completar la cantidad solicitada.
@@ -24,8 +25,9 @@ Durante el cruce, un antiguo indicador dimensional advierte:
 ## Controles
 
 - **Flechas** o **W / A / S / D**: Mover al repartidor (con movimiento diagonal normalizado).
+- **E**: Recoger las alitas al estar cerca del objeto / equiparlas o quitarlas una vez recogidas.
 - **ESPACIO**: Interactuar con el hada cuando estás cerca.
-- **Mouse / Teclado en interfaz**: Aceptar pedido, **PONERME ALITAS**, ingresar `CHUNKERO`, entregar panchos y reiniciar misión.
+- **Mouse / Teclado en interfaz**: Aceptar pedido, activar portal con `CHUNKERO`, entregar panchos y reiniciar misión.
 
 ## Tecnologías
 

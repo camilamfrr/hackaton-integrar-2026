@@ -1,5 +1,6 @@
 import { registerPixelAssets } from "../pixelSprites.js";
 import { PlayerController } from "../playerController.js";
+import { toggleWings } from "../gameState.js";
 
 export class FaeRealmScene extends Phaser.Scene {
   constructor() {
@@ -142,8 +143,9 @@ export class FaeRealmScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
-    // Tecla ESPACIO para interactuar
+    // Teclas ESPACIO (interactuar con hada) y E (equipar/quitar alitas)
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.nearFairy = false;
 
     // Eventos desde la UI de entrega
@@ -222,6 +224,14 @@ export class FaeRealmScene extends Phaser.Scene {
 
     if (this.nearFairy && Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
       uiBridge.openDeliveryModal();
+    }
+
+    if (!uiBridge.isModalOpen() && Phaser.Input.Keyboard.JustDown(this.eKey)) {
+      const res = toggleWings(state);
+      if (res.changed) {
+        this.player.setWingsEquipped(res.equipped, res.equipped);
+        uiBridge.onWingsUpdated();
+      }
     }
   }
 }

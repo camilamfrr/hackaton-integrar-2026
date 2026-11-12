@@ -1,6 +1,10 @@
 import { registerPixelAssets } from "../pixelSprites.js";
 import { PlayerController } from "../playerController.js";
-import { evaluatePortalAccess } from "../gameState.js";
+import {
+  collectWings,
+  evaluatePortalAccess,
+  toggleWings,
+} from "../gameState.js";
 
 export class PrepAndPortalScene extends Phaser.Scene {
   constructor() {
@@ -26,12 +30,12 @@ export class PrepAndPortalScene extends Phaser.Scene {
       this.add.image(x, height / 2 + 32, "path_tile").setScale(2);
     }
 
-    // Obstáculos con colisión (árboles y hongos)
+    // Obstáculos con colisión (árboles)
     this.obstacles = this.physics.add.staticGroup();
     const treeCoords = [
-      [75, 80], [220, 75], [400, 70], [720, 85],
+      [75, 80], [285, 75], [440, 70], [720, 85],
       [75, 445], [270, 450], [490, 445], [725, 445],
-      [350, 155], [470, 385],
+      [370, 155], [470, 385],
     ];
     for (const [tx, ty] of treeCoords) {
       const tree = this.obstacles.create(tx, ty, "tree_magic");
@@ -44,10 +48,44 @@ export class PrepAndPortalScene extends Phaser.Scene {
 
     // Flores decorativas
     const flowerCoords = [
-      [140, 180], [290, 210], [510, 165], [180, 360], [560, 355],
+      [140, 180], [240, 125], [510, 165], [180, 360], [560, 355],
     ];
     for (const [fx, fy] of flowerCoords) {
       this.add.image(fx, fy, "flower_glow").setScale(2);
+    }
+
+    // Objeto de Alitas de Cotillón en el escenario (solo si aún no se recogió)
+    this.wingsX = 185;
+    this.wingsY = 128;
+    this.wingsPickup = null;
+    this.wingsPrompt = null;
+
+    if (!state.wingsCollected) {
+      this.wingsPickup = this.add
+        .image(this.wingsX, this.wingsY, "wings_pickup")
+        .setScale(2.2)
+        .setDepth(8);
+
+      this.tweens.add({
+        targets: this.wingsPickup,
+        y: this.wingsY - 6,
+        duration: 900,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
+
+      this.wingsPrompt = this.add
+        .text(this.wingsX, this.wingsY - 34, "E — RECOGER ALITAS", {
+          fontFamily: "Cinzel, Georgia, serif",
+          fontSize: "12px",
+          color: "#09140f",
+          backgroundColor: "#f6d37a",
+          padding: { x: 8, y: 4 },
+        })
+        .setOrigin(0.5)
+        .setDepth(25)
+        .setVisible(false);
     }
 
     // Portal Interdimensional en el lado derecho
@@ -60,7 +98,6 @@ export class PrepAndPortalScene extends Phaser.Scene {
     this.portal.body.setOffset(35, 62);
     this.portal.setDepth(8);
 
-    // Partículas de energía del portal (activas cuando se abre)
     this.portalParticles = this.add.particles(this.portalX, this.portalY - 8, "sparkle", {
       speed: { min: 15, max: 55 },
       scale: { start: 1.8, end: 0 },
@@ -81,7 +118,7 @@ export class PrepAndPortalScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-    // Repartidor controlable
+    // Repartidor controlable (inicia sin alitas)
     this.player = new PlayerController(this, 155, height / 2 + 12, state.wingsEquipped);
     this.physics.add.collider(this.player.sprite, this.obstacles);
 
@@ -93,14 +130,12 @@ export class PrepAndPortalScene extends Phaser.Scene {
       this.handlePortalCollision();
     });
 
+    // Tecla E para recoger y equipar/quitar alitas
+    this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+
     // Sincronizar con UI externa
     this.syncPortalVisuals();
     this.player.setMovementLocked(uiBridge.isModalOpen());
-
-    this.events.on("wings-equipped", () => {
-      this.player.setWingsEquipped(true, true);
-      this.syncPortalVisuals();
-    });
 
     this.events.on("portal-updated", () => {
       this.syncPortalVisuals();
@@ -128,6 +163,61 @@ export class PrepAndPortalScene extends Phaser.Scene {
     }
   }
 
+  handleWingsInteraction() {
+    const state = this.registry.get("missionState");
+    const uiBridge = this.registry.get("uiBridge");
+    if (uiBridge.isModalOpen() || this.transitioning) return;
+
+    // Caso 1: Todavía no fueron recogidas -> solo recoger si está suficientemente cerca
+    if (!state.wingsCollected) {
+      if (!this.wingsPickup) return;
+      const dist = Phaser.Math.Distance.Between(
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.wingsX,
+        this.wingsY
+      );
+      if (dist <= 75) {
+        collectWings(state);
+        this.wingsPickup.destroy();
+        this.wingsPickup = null;
+        if (this.wingsPrompt) {
+          this.wingsPrompt.destroy();
+          this.wingsPrompt = null;
+        }
+
+        const burst = this.add.particles(this.wingsX, this.wingsY, "sparkle", {
+          speed: { min: 30, max: 85 },
+          scale: { start: 1.8, end: 0 },
+          lifespan: 450,
+          quantity: 12,
+          emitting: false,
+        });
+        burst.setDepth(20);
+        burst.explode(12);
+        this.time.delayedCall(500, () => burst.destroy());
+
+        uiBridge.onWingsUpdated();
+        uiBridge.showToast("¡Encontraste las alitas de cotillón! Presioná E para equiparlas.", "success");
+      }
+      return;
+    }
+
+    // Caso 2: Ya están en el inventario -> equipar o quitar con E
+    const result = toggleWings(state);
+    if (result.changed) {
+      this.player.setWingsEquipped(result.equipped, result.equipped);
+      this.syncPortalVisuals();
+      uiBridge.onWingsUpdated();
+      uiBridge.showToast(
+        result.equipped
+          ? "Alitas equipadas en tu espalda. ¡Lucen geniales!"
+          : "Te quitaste las alitas y las guardaste en la mochila.",
+        result.equipped ? "success" : "info"
+      );
+    }
+  }
+
   handlePortalCollision() {
     if (this.transitioning) return;
 
@@ -140,13 +230,11 @@ export class PrepAndPortalScene extends Phaser.Scene {
       if (now - this.lastBlockFeedbackAt > 1200) {
         this.lastBlockFeedbackAt = now;
         uiBridge.showToast(access.message, "error");
-        // Pequeño empuje hacia atrás para evitar quedar pegado al trigger
         this.player.sprite.x -= 22;
       }
       return;
     }
 
-    // Transición al Reino Fae
     this.transitioning = true;
     this.player.setMovementLocked(true);
     state.inFaeRealm = true;
@@ -161,5 +249,23 @@ export class PrepAndPortalScene extends Phaser.Scene {
 
   update() {
     this.player.update();
+
+    const state = this.registry.get("missionState");
+    const uiBridge = this.registry.get("uiBridge");
+
+    // Proximidad al objeto de alitas en el suelo
+    if (!state.wingsCollected && this.wingsPickup && this.wingsPrompt) {
+      const dist = Phaser.Math.Distance.Between(
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.wingsX,
+        this.wingsY
+      );
+      this.wingsPrompt.setVisible(dist <= 75 && !uiBridge.isModalOpen());
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+      this.handleWingsInteraction();
+    }
   }
 }

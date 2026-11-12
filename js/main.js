@@ -1,7 +1,6 @@
 import {
   createMissionState,
   deliverOnePancho,
-  equipWings,
   getPendingCount,
   submitMagicWord,
   STABILITY_DESCRIPTION,
@@ -13,22 +12,19 @@ import { FaeRealmScene } from "./scenes/FaeRealmScene.js";
 document.addEventListener("DOMContentLoaded", () => {
   let missionState = createMissionState();
 
-  // Referencias del HUD
   const hudMission = document.getElementById("hud-mission");
   const hudOrder = document.getElementById("hud-order");
   const hudPending = document.getElementById("hud-pending");
+  const hudWings = document.getElementById("hud-wings");
   const hudPortal = document.getElementById("hud-portal");
   const hudStabilityValue = document.getElementById("hud-stability-value");
   const hudStabilityDesc = document.getElementById("hud-stability-desc");
 
-  // Panel de preparación (Nivel 2)
   const prepBar = document.getElementById("prep-bar");
-  const btnEquipWings = document.getElementById("btn-equip-wings");
   const magicWordForm = document.getElementById("magic-word-form");
   const inputMagicWord = document.getElementById("input-magic-word");
   const prepFeedback = document.getElementById("prep-feedback");
 
-  // Modales (Nivel 1, Nivel 5 Entrega, Victoria)
   const modalIntro = document.getElementById("modal-intro");
   const introFairyName = document.getElementById("intro-fairy-name");
   const introOrderCount = document.getElementById("intro-order-count");
@@ -87,13 +83,20 @@ document.addEventListener("DOMContentLoaded", () => {
     hudMission.textContent = `${missionState.missionName} (${missionState.fairyName})`;
     hudOrder.textContent = `${missionState.requestedCount} panchos con papitas`;
     hudPending.textContent = `${pending} pendiente${pending === 1 ? "" : "s"}`;
+
+    if (missionState.wingsEquipped) {
+      hudWings.textContent = "Equipadas ✓ (E: quitar)";
+      hudWings.dataset.equipped = "true";
+    } else if (missionState.wingsCollected) {
+      hudWings.textContent = "En mochila (E: equipar)";
+      hudWings.dataset.equipped = "false";
+    } else {
+      hudWings.textContent = "Sin alitas";
+      hudWings.dataset.equipped = "false";
+    }
+
     hudPortal.textContent = missionState.orderStatus;
     hudPortal.dataset.open = String(missionState.portalOpen || missionState.inFaeRealm);
-
-    btnEquipWings.disabled = missionState.wingsEquipped;
-    btnEquipWings.textContent = missionState.wingsEquipped
-      ? "ALITAS EQUIPADAS ✓"
-      : "PONERME ALITAS";
 
     introFairyName.textContent = missionState.fairyName;
     introOrderCount.textContent = `${missionState.requestedCount} panchos con papitas`;
@@ -107,6 +110,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const uiBridge = {
     isModalOpen,
     showToast,
+    onWingsUpdated() {
+      updateHUD();
+      if (missionState.portalOpen) {
+        prepFeedback.textContent = "¡Todo listo! Caminá hacia el portal para cruzar al Reino Fae.";
+      } else if (missionState.wingsEquipped && !missionState.magicWordValid) {
+        prepFeedback.textContent = "Alitas equipadas. Ahora ingresá la palabra mágica CHUNKERO.";
+      } else if (missionState.wingsCollected && !missionState.wingsEquipped) {
+        prepFeedback.textContent = "Tenés las alitas en la mochila. Presioná E para equiparlas.";
+      }
+    },
     onEnterFaeRealm() {
       prepBar.hidden = true;
       updateHUD();
@@ -121,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  // Inicializar Phaser 3
   const config = {
     type: Phaser.AUTO,
     parent: "game-canvas-container",
@@ -149,7 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
   game.registry.set("missionState", missionState);
   game.registry.set("uiBridge", uiBridge);
 
-  // Evitar que Phaser capture teclas mientras se escribe la palabra mágica
   inputMagicWord.addEventListener("focus", () => {
     if (game.input?.keyboard) {
       game.input.keyboard.enabled = false;
@@ -161,29 +172,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Nivel 1: Aceptar pedido
   btnAcceptOrder.addEventListener("click", () => {
     modalIntro.hidden = true;
     prepBar.hidden = false;
     syncKeyboardLock();
-    showToast("Equipate las alitas, pronunciá CHUNKERO y caminá hacia el portal.", "info");
+    showToast("Recorré el claro para encontrar las alitas y pronunciá CHUNKERO.", "info");
   });
 
-  // Nivel 2: Equipar alitas
-  btnEquipWings.addEventListener("click", () => {
-    equipWings(missionState);
-    updateHUD();
-    const scene = getActiveScene();
-    if (scene) {
-      scene.events.emit("wings-equipped");
-    }
-    prepFeedback.textContent = missionState.magicWordValid
-      ? "¡Todo listo! Caminá hacia el portal para cruzar al Reino Fae."
-      : "Alitas equipadas. Ahora ingresá la palabra mágica CHUNKERO.";
-    showToast("¡Alitas de cotillón equipadas!", "success");
-  });
-
-  // Nivel 2: Palabra mágica CHUNKERO
   magicWordForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const result = submitMagicWord(missionState, inputMagicWord.value);
@@ -198,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
     inputMagicWord.blur();
   });
 
-  // Nivel 5: Entregar panchos de a uno
   btnDeliverOne.addEventListener("click", () => {
     const res = deliverOnePancho(missionState);
     updateHUD();
@@ -227,13 +221,13 @@ document.addEventListener("DOMContentLoaded", () => {
     syncKeyboardLock();
   });
 
-  // Reiniciar partida con nueva cantidad variable
   btnRestartGame.addEventListener("click", () => {
     missionState = createMissionState();
     game.registry.set("missionState", missionState);
 
     inputMagicWord.value = "";
-    prepFeedback.textContent = "Equipate las alitas e ingresá CHUNKERO para activar el portal.";
+    prepFeedback.textContent =
+      "Buscá las alitas de cotillón en el claro (E para recoger y equipar) e ingresá CHUNKERO.";
     prepBar.hidden = true;
     modalVictory.hidden = true;
     modalDelivery.hidden = true;
@@ -245,7 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
     btnAcceptOrder.focus();
   });
 
-  // Mostrar Nivel 1 al iniciar
   updateHUD();
   modalIntro.hidden = false;
 });

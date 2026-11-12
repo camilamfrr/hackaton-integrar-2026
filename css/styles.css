@@ -93,7 +93,8 @@ body {
   color: var(--accent-gold-glow);
 }
 
-.hud-value[data-open="true"] {
+.hud-value[data-open="true"],
+.hud-value[data-equipped="true"] {
   color: var(--portal-emerald);
 }
 

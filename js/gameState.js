@@ -11,29 +11,15 @@ export const STABILITY_DESCRIPTION =
 export const FAIRY_NAME = "Lumina del Claro";
 export const ORDER_QUANTITIES = [2, 3, 5];
 
-/**
- * Normaliza la palabra mágica ingresada: recorta espacios exteriores y pasa a mayúsculas.
- * @param {unknown} rawInput
- * @returns {string}
- */
 export function normalizeMagicWord(rawInput) {
   if (typeof rawInput !== "string") return "";
   return rawInput.trim().toUpperCase();
 }
 
-/**
- * Verifica si la palabra ingresada coincide con CHUNKERO.
- * @param {unknown} rawInput
- * @returns {boolean}
- */
 export function isMagicWordValid(rawInput) {
   return normalizeMagicWord(rawInput) === MAGIC_WORD;
 }
 
-/**
- * Crea un nuevo estado inicial de misión con cantidad variable (2, 3 o 5 panchos).
- * @param {number} [forcedQuantity]
- */
 export function createMissionState(forcedQuantity) {
   const validQuantity =
     typeof forcedQuantity === "number" && forcedQuantity > 0
@@ -45,6 +31,7 @@ export function createMissionState(forcedQuantity) {
     fairyName: FAIRY_NAME,
     requestedCount: validQuantity,
     deliveredCount: 0,
+    wingsCollected: false,
     wingsEquipped: false,
     magicWordValid: false,
     lastWordAttempt: "",
@@ -56,18 +43,28 @@ export function createMissionState(forcedQuantity) {
 }
 
 /**
- * Equipa las alitas de cotillón al repartidor.
+ * Incorpora las alitas de cotillón al inventario tras recogerlas en el escenario.
  */
-export function equipWings(state) {
-  state.wingsEquipped = true;
+export function collectWings(state) {
+  if (state.wingsCollected) return false;
+  state.wingsCollected = true;
   updatePortalReadiness(state);
-  return state;
+  return true;
 }
 
 /**
- * Evalúa la palabra mágica y actualiza el estado del portal.
- * Devuelve un resultado detallado para feedback gracioso.
+ * Equipa o quita las alitas de cotillón (solo si ya fueron recogidas).
+ * @returns {{ changed: boolean, equipped: boolean }}
  */
+export function toggleWings(state) {
+  if (!state.wingsCollected) {
+    return { changed: false, equipped: false };
+  }
+  state.wingsEquipped = !state.wingsEquipped;
+  updatePortalReadiness(state);
+  return { changed: true, equipped: state.wingsEquipped };
+}
+
 export function submitMagicWord(state, rawInput) {
   const cleaned = normalizeMagicWord(rawInput);
   state.lastWordAttempt = cleaned;
@@ -76,9 +73,6 @@ export function submitMagicWord(state, rawInput) {
   return evaluatePortalAccess(state);
 }
 
-/**
- * Actualiza si el portal está listo/abierto según las dos condiciones.
- */
 export function updatePortalReadiness(state) {
   state.portalOpen = Boolean(state.wingsEquipped && state.magicWordValid);
   if (state.missionCompleted) {
@@ -92,10 +86,6 @@ export function updatePortalReadiness(state) {
   }
 }
 
-/**
- * Evalúa si el jugador puede activar o cruzar el portal.
- * @returns {{ allowed: boolean, reasonCode: string, message: string }}
- */
 export function evaluatePortalAccess(state) {
   if (state.wingsEquipped && state.magicWordValid) {
     return {
@@ -106,21 +96,31 @@ export function evaluatePortalAccess(state) {
     };
   }
 
+  if (!state.wingsCollected) {
+    return {
+      allowed: false,
+      reasonCode: "WINGS_NOT_COLLECTED",
+      message: state.magicWordValid
+        ? "La palabra CHUNKERO funcionó, pero primero tenés que buscar las alitas de cotillón por el escenario."
+        : "Primero buscá las alitas de cotillón en el claro y pronunciá la palabra CHUNKERO.",
+    };
+  }
+
   if (!state.wingsEquipped && !state.magicWordValid) {
     return {
       allowed: false,
       reasonCode: "MISSING_BOTH",
       message:
-        "Te faltan las alitas de cotillón y pronunciar CHUNKERO. ¡Sin disfraz ni conjuro el portal te convierte en helecho!",
+        "Tenés las alitas en la mochila: presioná E para equiparlas y escribí CHUNKERO.",
     };
   }
 
   if (!state.wingsEquipped) {
     return {
       allowed: false,
-      reasonCode: "MISSING_WINGS",
+      reasonCode: "WINGS_NOT_EQUIPPED",
       message:
-        "La palabra CHUNKERO funcionó, pero te faltan las alitas de cotillón. Presioná 'PONERME ALITAS' primero.",
+        "¡Ya tenés las alitas en el inventario! Presioná E para ponértelas antes de cruzar.",
     };
   }
 
@@ -129,21 +129,14 @@ export function evaluatePortalAccess(state) {
     reasonCode: "INVALID_WORD",
     message: state.lastWordAttempt
       ? `Tus alitas brillan genial, pero el portal escuchó "${state.lastWordAttempt}" en vez de CHUNKERO.`
-      : "Tus alitas están listas, pero falta escribir la palabra mágica CHUNKERO.",
+      : "Tus alitas están equipadas, pero falta escribir la palabra mágica CHUNKERO.",
   };
 }
 
-/**
- * Devuelve cuántos panchos faltan entregar.
- */
 export function getPendingCount(state) {
   return Math.max(0, state.requestedCount - state.deliveredCount);
 }
 
-/**
- * Entrega una unidad de pancho con papitas al hada.
- * No permite entregar más unidades que las solicitadas ni completar antes de tiempo.
- */
 export function deliverOnePancho(state) {
   if (!state.inFaeRealm) {
     return {
