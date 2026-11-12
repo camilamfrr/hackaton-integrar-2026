@@ -1,53 +1,67 @@
-# CHUNKERO — Portal de Emergencia Fae
+# CHUNKERO — The Fae Delivery Quest
 
-**Pabellón:** 3 — Mundos Inventados (Hackathon 2026 — Feria de Soluciones Improbables)
+Videojuego 2D top-down en estilo **Fantasy Pixel Art** desarrollado para la **Hackathon 2026**.
 
-## Problema
+## Historia
 
-Una hada del Reino Fae tiene un antojo urgente de **panchos con papitas**, pero ningún servicio de delivery tradicional cruza las fronteras dimensionales hacia el mundo mágico.
+El hada **Lumina del Claro** tiene un antojo urgente de panchos con papitas, pero ninguna app de delivery llega al Reino Fae. Para resolverlo construyó un portal interdimensional que solo deja pasar a repartidores humanos que cumplan dos reglas:
 
-## Solución
+1. Llevar puestas **alitas de cotillón**.
+2. Pronunciar la palabra mágica **`CHUNKERO`**.
 
-**CHUNKERO** es un prototipo web interactivo con estética de videojuego narrativo fantástico que simula un portal interdimensional de emergencia. Para que un humano pueda cruzar con el pedido sin incidentes, el portal exige cumplir dos condiciones de seguridad feérica:
+Durante el cruce, un antiguo indicador dimensional advierte:
 
-1. Confirmar que lleva puestas **alitas de cotillón**.
-2. Pronunciar o escribir correctamente la palabra mágica **`CHUNKERO`** (sin distinguir mayúsculas ni espacios exteriores).
+> **73,84291 %** — *Probabilidad de atravesar el portal sin convertirse accidentalmente en un helecho.*
 
-## Ingrediente improbable
+## Mecánicas
 
-El artefacto antiguo muestra de forma permanente su indicador de estabilidad dimensional:
+- **Pedido variable:** Cada misión solicita una cantidad aleatoria (`2`, `3` o `5` panchos con papitas) que persiste durante toda la partida.
+- **Preparación:** Botón **PONERME ALITAS** (equipa visualmente las alitas con animación y destellos sobre el personaje) + validación de la palabra mágica `CHUNKERO` (ignora mayúsculas y espacios exteriores).
+- **Portal Interdimensional:** Bloquea el paso con mensajes graciosos si falta algún requisito; al activarse, abre su vórtice de energía y transporta al jugador al Reino Fae.
+- **Exploración y colisiones:** Mapa top-down con árboles, hongos gigantes, flores luminosas y casas fantásticas con colisión física.
+- **Entrega progresiva:** Al acercarse al hada y presionar `ESPACIO`, se abre el diálogo de entrega para entregar los panchos uno por uno hasta completar la cantidad solicitada.
 
-> **73,84291 %** — *Probabilidad de llegar al Reino Fae sin convertirse accidentalmente en un helecho.*
+## Controles
 
-## Tecnologías utilizadas
+- **Flechas** o **W / A / S / D**: Mover al repartidor (con movimiento diagonal normalizado).
+- **ESPACIO**: Interactuar con el hada cuando estás cerca.
+- **Mouse / Teclado en interfaz**: Aceptar pedido, **PONERME ALITAS**, ingresar `CHUNKERO`, entregar panchos y reiniciar misión.
 
-- **HTML5** semántico e ilustraciones vectoriales **SVG** artesanales (bosque encantado, portal rúnico, hada y panchos con papitas).
-- **CSS3** con variables de diseño, transiciones suaves, animaciones GPU-friendly y soporte completo para `prefers-reduced-motion`.
-- **JavaScript (ES Modules)** puro, con la lógica de validación desacoplada en `js/validation.js`, partículas ambientales en `js/particles.js` y controlador de interfaz en `js/app.js`.
+## Tecnologías
+
+- **JavaScript (ES Modules)**
+- **Phaser 3** (Arcade Physics, `pixelArt: true`, múltiples escenas)
+- **HTML5 & CSS3** (HUD, modales narrativos, soporte `prefers-reduced-motion`)
+- Sprites y tiles **Fantasy Pixel Art** generados proceduralmente en `js/pixelSprites.js`.
 
 ## Skills utilizadas
 
 - `frontend-design`
 - `web-animation-design`
-- `design-ui-ux-game`
+- `design-ui-ux-game` *(game UI/UX design)*
+- *(Nota: `creative coding` no estaba instalada como skill en el entorno).*
 
-## Instrucciones para ejecutar y probar
+## Instalación y ejecución
 
-Al utilizar ES Modules (`<script type="module">`), el proyecto debe servirse desde un servidor HTTP local (por seguridad del navegador frente a `file://`):
+No requiere `npm install` ni bundler. Serví el directorio con un servidor HTTP local:
 
 ```bash
 python3 -m http.server 4173
 ```
 
-Luego abrí en el navegador:
+Luego abrí en tu navegador:
 
 ```text
 http://localhost:4173
 ```
 
-### Casos de prueba sugeridos
+## Instrucciones para probar la misión
 
-1. **Acceso autorizado:** Presioná **ABRIR PORTAL**, marcá el checkbox de alitas de cotillón, escribí `  chunkero  ` (con minúsculas o espacios) y enviá. El portal se abrirá mostrando el mensaje de agradecimiento y los panchos con papitas.
-2. **Solo alitas faltantes:** Desmarcá las alitas y escribí `CHUNKERO`. El portal se cerrará indicando que falta la indumentaria feérica.
-3. **Solo palabra incorrecta:** Marcá las alitas y escribí otra palabra (o dejá el campo vacío). El portal mostrará el error de conjuro mal pronunciado.
-4. **Ambas condiciones incorrectas:** Enviá sin marcar alitas y sin escribir `CHUNKERO` para verificar el sello doble y el botón **Volver a intentarlo**.
+1. En la pantalla inicial, revisá el pedido del hada y presioná **ACEPTAR PEDIDO**.
+2. Intentá caminar hacia el portal (derecha) sin prepararte para comprobar que el portal bloquea el ingreso e indica qué falta.
+3. Presioná **PONERME ALITAS** para equipar visualmente las alitas en el personaje.
+4. Escribí `chunkero` (con o sin espacios/mayúsculas) y presioná **ACTIVAR PORTAL**.
+5. Caminá hacia el portal iluminado para cruzar al **Reino Fae**.
+6. Explorá el bosque mágico hasta encontrar a **Lumina del Claro** (este del mapa), acercate y presioná **ESPACIO**.
+7. Entregá los panchos con papitas uno por uno hasta completar el pedido y ver la pantalla de victoria.
+8. Presioná **JUGAR OTRA MISIÓN** para reiniciar con un nuevo pedido.

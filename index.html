@@ -3,507 +3,178 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CHUNKERO — Portal de Emergencia Fae</title>
+    <title>CHUNKERO — The Fae Delivery Quest</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   </head>
-  <body data-portal-state="idle">
-    <!-- Partículas mágicas ambientales -->
-    <canvas id="magic-particles" aria-hidden="true"></canvas>
+  <body>
+    <div class="game-shell">
+      <!-- HUD Superior del Videojuego -->
+      <header class="game-hud" aria-label="Estado de la misión">
+        <div class="hud-block">
+          <span class="hud-label">Misión</span>
+          <strong class="hud-value" id="hud-mission">Entrega Interdimensional Fae</strong>
+        </div>
 
-    <!-- Escenario del bosque encantado -->
-    <div class="enchanted-backdrop" aria-hidden="true">
-      <svg
-        class="forest-svg"
-        viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMax slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <radialGradient id="gladeGlow" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#2b5540" stop-opacity="0.7" />
-            <stop offset="60%" stop-color="#132920" stop-opacity="0.88" />
-            <stop offset="100%" stop-color="#09140f" stop-opacity="1" />
-          </radialGradient>
-          <radialGradient id="shroomGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#f6d37a" stop-opacity="0.75" />
-            <stop offset="100%" stop-color="#f6d37a" stop-opacity="0" />
-          </radialGradient>
-        </defs>
+        <div class="hud-block">
+          <span class="hud-label">Pedido</span>
+          <strong class="hud-value" id="hud-order">3 panchos con papitas</strong>
+        </div>
 
-        <rect width="1440" height="900" fill="url(#gladeGlow)" />
+        <div class="hud-block">
+          <span class="hud-label">Pendientes</span>
+          <strong class="hud-value hud-highlight" id="hud-pending">3 pendientes</strong>
+        </div>
 
-        <!-- Siluetas de árboles antiguos lejanos -->
-        <g fill="#0c1c15" opacity="0.75">
-          <path d="M0,900 L0,180 Q60,240 45,420 Q120,380 155,210 Q180,390 210,900 Z" />
-          <path d="M1440,900 L1440,140 Q1360,250 1385,430 Q1290,340 1260,180 Q1230,420 1190,900 Z" />
-          <path d="M180,900 Q210,480 265,280 Q295,490 340,900 Z" />
-          <path d="M1080,900 Q1125,490 1170,250 Q1205,490 1250,900 Z" />
-        </g>
+        <div class="hud-block">
+          <span class="hud-label">Portal</span>
+          <strong class="hud-value" id="hud-portal" data-open="false">En preparación</strong>
+        </div>
 
-        <!-- Colinas de musgo en primer plano -->
-        <path
-          d="M0,760 Q320,680 720,745 Q1110,805 1440,730 L1440,900 L0,900 Z"
-          fill="#0d1e17"
-        />
-        <path
-          d="M0,810 Q380,750 760,815 Q1140,865 1440,795 L1440,900 L0,900 Z"
-          fill="#08130e"
-        />
+        <div class="hud-block hud-stability" title="Indicador de estabilidad dimensional">
+          <span class="hud-label">Estabilidad</span>
+          <strong class="hud-value hud-gold" id="hud-stability-value">73,84291 %</strong>
+          <span class="hud-sub" id="hud-stability-desc">
+            Probabilidad de atravesar el portal sin convertirse accidentalmente en un helecho.
+          </span>
+        </div>
+      </header>
 
-        <!-- Hongos mágicos bioluminiscentes izquierda -->
-        <g transform="translate(125, 760)">
-          <circle cx="24" cy="18" r="46" fill="url(#shroomGlow)" />
-          <path d="M18,56 Q22,34 20,22 L28,22 Q26,34 30,56 Z" fill="#e8d8b9" />
-          <path d="M2,24 Q24,-4 46,24 Q24,30 2,24 Z" fill="#c98986" />
-          <circle cx="16" cy="15" r="3.2" fill="#f6e9c9" />
-          <circle cx="29" cy="11" r="2.3" fill="#f6e9c9" />
-          <circle cx="34" cy="19" r="1.8" fill="#f6e9c9" />
-        </g>
+      <!-- Escenario 2D Phaser -->
+      <main class="viewport-frame">
+        <div id="game-canvas-container"></div>
 
-        <!-- Hongo pequeño izquierda -->
-        <g transform="translate(178, 788)">
-          <path d="M10,32 Q12,20 11,14 L16,14 Q15,20 17,32 Z" fill="#dfd0b0" />
-          <path d="M2,15 Q13,0 25,15 Q13,18 2,15 Z" fill="#d4a24c" />
-        </g>
+        <!-- Notificación flotante dentro del juego -->
+        <div class="game-toast" id="game-toast" role="status" aria-live="polite" hidden></div>
 
-        <!-- Flores mágicas y hongos derecha -->
-        <g transform="translate(1235, 748)">
-          <circle cx="30" cy="22" r="52" fill="url(#shroomGlow)" />
-          <path d="M24,66 Q28,42 26,26 L35,26 Q33,42 38,66 Z" fill="#e8d8b9" />
-          <path d="M5,28 Q31,-5 56,28 Q31,34 5,28 Z" fill="#c98986" />
-          <circle cx="22" cy="16" r="3.5" fill="#f6e9c9" />
-          <circle cx="38" cy="14" r="2.6" fill="#f6e9c9" />
-        </g>
+        <!-- Modal Nivel 1: La Solicitud -->
+        <section
+          class="game-modal"
+          id="modal-intro"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="intro-title"
+          hidden
+        >
+          <p class="modal-tag">CHUNKERO — The Fae Delivery Quest</p>
+          <h1 id="intro-title">¡Emergencia de Delivery Fae!</h1>
+          <p>
+            El hada <strong id="intro-fairy-name">Lumina del Claro</strong> tiene un antojo urgente de
+            <strong id="intro-order-count">3 panchos con papitas</strong>, pero ninguna app llega al Reino Fae.
+          </p>
+          <p>
+            Construyó un portal mágico, pero exige llevar <strong>alitas de cotillón</strong> y pronunciar la
+            palabra secreta <strong>CHUNKERO</strong>.
+          </p>
+          <p class="controls-hint">
+            Controles: <strong>Flechas</strong> o <strong>WASD</strong> para caminar · <strong>ESPACIO</strong> para interactuar.
+          </p>
+          <div class="modal-actions">
+            <button type="button" class="btn-game-primary" id="btn-accept-order">
+              ACEPTAR PEDIDO
+            </button>
+          </div>
+        </section>
 
-        <!-- Helechos ornamentales -->
-        <g stroke="#29523e" stroke-width="2.2" fill="none" opacity="0.85">
-          <path d="M85,840 Q70,790 42,762" />
-          <path d="M74,805 Q55,796 46,805" />
-          <path d="M65,786 Q45,778 38,786" />
-          <path d="M1355,840 Q1375,785 1405,758" />
-          <path d="M1368,805 Q1388,798 1398,808" />
-        </g>
-      </svg>
+        <!-- Modal Nivel 5: Entrega del Pedido al Hada -->
+        <section
+          class="game-modal"
+          id="modal-delivery"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delivery-title"
+          hidden
+        >
+          <p class="modal-tag">Encuentro con el Hada</p>
+          <h2 id="delivery-title">Entrega para <span id="delivery-fairy-name">Lumina del Claro</span></h2>
+          <div class="delivery-counters">
+            <div>
+              <span>Solicitados</span>
+              <strong id="delivery-requested">3</strong>
+            </div>
+            <div>
+              <span>Entregados</span>
+              <strong id="delivery-delivered">0</strong>
+            </div>
+            <div>
+              <span>Pendientes</span>
+              <strong id="delivery-pending">3</strong>
+            </div>
+          </div>
+          <p class="delivery-msg" id="delivery-feedback">
+            Entregá los panchos con papitas uno por uno para completar el pedido.
+          </p>
+          <div class="modal-actions">
+            <button type="button" class="btn-game-secondary" id="btn-close-delivery">
+              Seguir explorando
+            </button>
+            <button type="button" class="btn-game-primary" id="btn-deliver-one">
+              ENTREGAR 1 PANCHO
+            </button>
+          </div>
+        </section>
+
+        <!-- Modal Final: Misión Completada -->
+        <section
+          class="game-modal"
+          id="modal-victory"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="victory-title"
+          hidden
+        >
+          <p class="modal-tag">¡Misión Completada!</p>
+          <h2 id="victory-title">¡DELIVERY INTERDIMENSIONAL COMPLETADO!</h2>
+          <p class="victory-quote">El Reino Fae vuelve a ser feliz.</p>
+          <p id="victory-summary"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn-game-primary" id="btn-restart-game">
+              JUGAR OTRA MISIÓN
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <!-- Barra de Preparación (Nivel 2) + Controles siempre visibles -->
+      <footer class="game-footer">
+        <section class="prep-bar" id="prep-bar" hidden aria-label="Preparación del repartidor">
+          <button type="button" class="btn-game-primary" id="btn-equip-wings">
+            PONERME ALITAS
+          </button>
+
+          <form class="magic-word-form" id="magic-word-form">
+            <label for="input-magic-word" class="sr-only">Palabra mágica</label>
+            <input
+              type="text"
+              id="input-magic-word"
+              placeholder="Palabra mágica (CHUNKERO)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="submit" class="btn-game-secondary" id="btn-activate-portal">
+              ACTIVAR PORTAL
+            </button>
+          </form>
+
+          <p class="prep-feedback" id="prep-feedback">
+            Equipate las alitas e ingresá CHUNKERO para activar el portal.
+          </p>
+        </section>
+
+        <div class="controls-bar" aria-label="Controles del juego">
+          <span><strong>Flechas / WASD:</strong> Mover repartidor</span>
+          <span><strong>ESPACIO:</strong> Interactuar con el hada</span>
+          <span><strong>Objetivo:</strong> Preparate, cruzá el portal y entregá todos los panchos</span>
+        </div>
+      </footer>
     </div>
 
-    <main class="stage">
-      <!-- Medallón del Ingrediente Improbable (siempre visible como artefacto antiguo) -->
-      <aside
-        class="artifact-gauge"
-        aria-label="Indicador de estabilidad dimensional"
-      >
-        <div class="gauge-crest" aria-hidden="true">
-          <svg viewBox="0 0 48 48" width="40" height="40">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-dasharray="3 3"
-            />
-            <circle
-              cx="24"
-              cy="24"
-              r="14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.2"
-            />
-            <path
-              d="M24 7 L27 21 L41 24 L27 27 L24 41 L21 27 L7 24 L21 21 Z"
-              fill="currentColor"
-              opacity="0.85"
-            />
-          </svg>
-        </div>
-        <div class="gauge-body">
-          <div class="gauge-header">
-            <span class="gauge-label">Estabilidad Dimensional</span>
-            <strong class="gauge-value">73,84291 %</strong>
-          </div>
-          <p class="gauge-note">
-            Probabilidad de llegar al Reino Fae sin convertirse accidentalmente en un helecho.
-          </p>
-        </div>
-      </aside>
-
-      <!-- Escena central del Portal Circular Rúnico -->
-      <section class="portal-altar" aria-label="Estado del Portal Rúnico">
-        <div class="portal-frame" id="portal-visual">
-          <svg
-            class="portal-svg"
-            viewBox="0 0 320 320"
-            xmlns="http://www.w3.org/2000/svg"
-            role="img"
-            aria-labelledby="portal-svg-title"
-          >
-            <title id="portal-svg-title">Portal circular con runas antiguas</title>
-            <defs>
-              <radialGradient id="vortexIdle" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#2c5c46" stop-opacity="0.6" />
-                <stop offset="65%" stop-color="#142d22" stop-opacity="0.85" />
-                <stop offset="100%" stop-color="#091510" stop-opacity="0.98" />
-              </radialGradient>
-              <radialGradient id="vortexOpen" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#fff6d1" stop-opacity="0.98" />
-                <stop offset="35%" stop-color="#7de2b8" stop-opacity="0.85" />
-                <stop offset="75%" stop-color="#286b52" stop-opacity="0.9" />
-                <stop offset="100%" stop-color="#112b20" stop-opacity="1" />
-              </radialGradient>
-              <radialGradient id="vortexRejected" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#5a1e1a" stop-opacity="0.85" />
-                <stop offset="70%" stop-color="#261010" stop-opacity="0.95" />
-                <stop offset="100%" stop-color="#110808" stop-opacity="1" />
-              </radialGradient>
-            </defs>
-
-            <!-- Halo exterior -->
-            <circle
-              class="portal-halo"
-              cx="160"
-              cy="160"
-              r="142"
-              fill="none"
-              stroke="#d4a24c"
-              stroke-width="1.5"
-              opacity="0.45"
-            />
-
-            <!-- Anillo giratorio de runas -->
-            <g class="portal-rune-ring">
-              <circle
-                cx="160"
-                cy="160"
-                r="128"
-                fill="none"
-                stroke="#d4a24c"
-                stroke-width="6"
-                stroke-dasharray="14 8 3 8"
-                opacity="0.85"
-              />
-              <circle
-                cx="160"
-                cy="160"
-                r="112"
-                fill="none"
-                stroke="#c98986"
-                stroke-width="1.5"
-                stroke-dasharray="4 10"
-                opacity="0.7"
-              />
-              <!-- Runas talladas alrededor -->
-              <g class="rune-glyphs" fill="#f6d37a" font-family="Cinzel, serif" font-size="14" text-anchor="middle">
-                <text x="160" y="45">ᚠ</text>
-                <text x="242" y="79">ᚢ</text>
-                <text x="275" y="165">ᚦ</text>
-                <text x="242" y="248">ᚨ</text>
-                <text x="160" y="283">ᚱ</text>
-                <text x="78" y="248">ᚲ</text>
-                <text x="45" y="165">ᚷ</text>
-                <text x="78" y="79">ᚹ</text>
-              </g>
-            </g>
-
-            <!-- Núcleo del portal -->
-            <circle class="portal-core-idle" cx="160" cy="160" r="96" fill="url(#vortexIdle)" />
-            <circle class="portal-core-open" cx="160" cy="160" r="96" fill="url(#vortexOpen)" />
-            <circle class="portal-core-rejected" cx="160" cy="160" r="96" fill="url(#vortexRejected)" />
-
-            <!-- Espiral interna -->
-            <g class="portal-swirl" fill="none" stroke="#f6d37a" stroke-width="1.8" opacity="0.55">
-              <path d="M160,92 A68,68 0 1,1 92,160" />
-              <path d="M160,228 A68,68 0 1,1 228,160" />
-              <path d="M160,118 A42,42 0 1,1 118,160" stroke="#7de2b8" />
-            </g>
-
-            <!-- Sello de bloqueo (visible solo si se rechaza) -->
-            <g class="portal-lock-seal" stroke="#e48073" stroke-width="3.5" stroke-linecap="round">
-              <line x1="128" y1="128" x2="192" y2="192" />
-              <line x1="192" y1="128" x2="128" y2="192" />
-            </g>
-          </svg>
-
-          <!-- Runas testigo de condiciones -->
-          <div class="condition-runes" aria-live="polite">
-            <span class="rune-badge" id="rune-wings" data-active="false">
-              <span class="rune-dot" aria-hidden="true"></span>
-              Alitas de cotillón
-            </span>
-            <span class="rune-badge" id="rune-word" data-active="false">
-              <span class="rune-dot" aria-hidden="true"></span>
-              Palabra CHUNKERO
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Grimorio / Pergamino Narrativo (cambia según la pantalla activa) -->
-      <section class="grimoire-panel" aria-live="polite">
-        <div class="grimoire-ornament-top" aria-hidden="true"></div>
-
-        <!-- PANTALLA 1: INICIAL -->
-        <article class="screen is-active" id="screen-intro" data-screen="intro">
-          <header class="intro-header">
-            <p class="pavilion-tag">Feria de Soluciones Improbables · Pabellón 3: Mundos Inventados</p>
-            <h1 class="brand-title">CHUNKERO</h1>
-            <p class="brand-subtitle">Portal de Emergencia Fae</p>
-          </header>
-
-          <div class="story-layout">
-            <!-- Ilustración artesanal del Hada -->
-            <figure class="fairy-illustration">
-              <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustración del hada del Reino Fae sosteniendo su varita">
-                <defs>
-                  <linearGradient id="wingGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#f2c4bf" stop-opacity="0.88" />
-                    <stop offset="100%" stop-color="#f6d37a" stop-opacity="0.45" />
-                  </linearGradient>
-                  <linearGradient id="dressGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#376d53" />
-                    <stop offset="100%" stop-color="#1b3e2e" />
-                  </linearGradient>
-                </defs>
-
-                <!-- Alas translúcidas -->
-                <g class="fairy-wings">
-                  <path d="M88,82 C46,35 16,58 28,96 C38,118 68,108 88,96 Z" fill="url(#wingGrad)" stroke="#f6d37a" stroke-width="1.2" />
-                  <path d="M96,82 C138,35 168,58 156,96 C146,118 116,108 96,96 Z" fill="url(#wingGrad)" stroke="#f6d37a" stroke-width="1.2" />
-                  <path d="M88,98 C55,104 42,134 62,144 C78,150 86,124 90,106 Z" fill="url(#wingGrad)" stroke="#f6d37a" stroke-width="1" />
-                  <path d="M96,98 C129,104 142,134 122,144 C106,150 98,124 94,106 Z" fill="url(#wingGrad)" stroke="#f6d37a" stroke-width="1" />
-                </g>
-
-                <!-- Vestido de hojas -->
-                <path d="M77,94 Q92,86 107,94 L120,154 Q106,144 92,158 Q78,144 64,154 Z" fill="url(#dressGrad)" stroke="#d4a24c" stroke-width="1.2" />
-
-                <!-- Piernas y botitas -->
-                <path d="M84,152 L80,178 M100,152 L104,178" stroke="#f2cfb6" stroke-width="4" stroke-linecap="round" />
-                <ellipse cx="78" cy="180" rx="6" ry="3.5" fill="#c98986" />
-                <ellipse cx="106" cy="180" rx="6" ry="3.5" fill="#c98986" />
-
-                <!-- Cabeza y cabello -->
-                <circle cx="92" cy="64" r="21" fill="#4f2d24" />
-                <circle cx="92" cy="68" r="16.5" fill="#f7dac4" />
-                <!-- Orejitas puntiagudas -->
-                <path d="M75,67 L66,62 L75,73 Z" fill="#f7dac4" />
-                <path d="M109,67 L118,62 L109,73 Z" fill="#f7dac4" />
-                <!-- Ojos expresivos y rubor -->
-                <circle cx="86" cy="67" r="2.2" fill="#241a12" />
-                <circle cx="98" cy="67" r="2.2" fill="#241a12" />
-                <ellipse cx="82" cy="72" rx="3" ry="1.6" fill="#e0928d" opacity="0.65" />
-                <ellipse cx="102" cy="72" rx="3" ry="1.6" fill="#e0928d" opacity="0.65" />
-                <!-- Boquita expectante -->
-                <path d="M88,75 Q92,78 96,75" fill="none" stroke="#8c4a43" stroke-width="1.6" stroke-linecap="round" />
-                <!-- Corona floral -->
-                <circle cx="84" cy="50" r="4" fill="#c98986" />
-                <circle cx="92" cy="48" r="4.5" fill="#f6d37a" />
-                <circle cx="100" cy="50" r="4" fill="#c98986" />
-
-                <!-- Brazo y varita mágica -->
-                <path d="M105,98 L126,112" stroke="#f7dac4" stroke-width="4" stroke-linecap="round" />
-                <line x1="126" y1="112" x2="148" y2="72" stroke="#d4a24c" stroke-width="2.6" stroke-linecap="round" />
-                <path d="M148,60 L151,68 L159,71 L151,74 L148,82 L145,74 L137,71 L145,68 Z" fill="#f6d37a" />
-              </svg>
-            </figure>
-
-            <div class="story-copy">
-              <p class="story-lead">
-                <strong>Emergencia gastronómica en el Reino Fae:</strong> ninguna app de reparto cruza las fronteras entre dimensiones, y nuestra hada lleva tres lunas soñando con <em>panchos con papitas</em>.
-              </p>
-              <p>
-                Con ramas de roble, polvo de estrellas y un poco de desesperación, construyó este portal improvisado para que un humano pueda entregar el pedido en mano.
-              </p>
-            </div>
-          </div>
-
-          <div class="actions-row">
-            <button type="button" class="btn-primary" id="btn-start">
-              ABRIR PORTAL
-            </button>
-          </div>
-        </article>
-
-        <!-- PANTALLA 2: AUTORIZACIÓN -->
-        <article class="screen" id="screen-auth" data-screen="auth" hidden>
-          <header class="screen-header">
-            <h2>Protocolo de Cruce Feérico</h2>
-            <p>
-              Para atravesar el umbral sin incidentes botánicos, el portal exige dos requisitos innegociables:
-            </p>
-          </header>
-
-          <form id="auth-form" class="auth-form" novalidate>
-            <!-- Condición 1: Alitas de cotillón -->
-            <label class="seal-checkbox" for="input-wings">
-              <input type="checkbox" id="input-wings" name="hasWings" />
-              <span class="seal-box" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16">
-                  <path
-                    d="M5 13l4 4L19 7"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <span class="seal-text">
-                <strong>Condición 1 — Indumentaria</strong>
-                <span>Confirmo que llevo puestas mis alitas de cotillón.</span>
-              </span>
-            </label>
-
-            <!-- Condición 2: Palabra mágica -->
-            <div class="magic-word-field">
-              <label for="input-magic-word">
-                <strong>Condición 2 — Palabra Mágica</strong>
-                <span>Pronunciá o escribí el conjuro de apertura:</span>
-              </label>
-              <div class="input-wrapper">
-                <input
-                  type="text"
-                  id="input-magic-word"
-                  name="magicWord"
-                  autocomplete="off"
-                  spellcheck="false"
-                  placeholder="Escribí aquí la palabra mágica..."
-                  aria-describedby="word-feedback"
-                />
-                <span class="word-status-icon" id="word-status-icon" aria-hidden="true">✦</span>
-              </div>
-              <p class="field-hint" id="word-feedback">
-                Pista del grimorio: es el nombre de este portal (no distingue mayúsculas ni espacios).
-              </p>
-            </div>
-
-            <div class="actions-row">
-              <button type="button" class="btn-secondary" id="btn-back-intro">
-                Volver
-              </button>
-              <button type="submit" class="btn-primary" id="btn-submit-auth">
-                INVOCAR CRUCE
-              </button>
-            </div>
-          </form>
-        </article>
-
-        <!-- PANTALLA 3: TRANSICIÓN DE APERTURA -->
-        <article class="screen" id="screen-opening" data-screen="opening" hidden>
-          <div class="opening-status">
-            <h2>Alineando las Runas...</h2>
-            <p>
-              El sello dimensional vibra al <strong>73,84291 %</strong>. Sujetá bien los panchos con papitas.
-            </p>
-          </div>
-        </article>
-
-        <!-- PANTALLA 4: PORTAL ABIERTO -->
-        <article class="screen" id="screen-open" data-screen="open" hidden>
-          <header class="screen-header result-header-open">
-            <p class="status-pill status-pill--open">Acceso Autorizado al Reino Fae</p>
-            <h2 id="open-title">¡Portal Interdimensional Abierto!</h2>
-          </header>
-
-          <div class="open-layout">
-            <!-- Ilustración artesanal de Panchos con Papitas -->
-            <figure class="pancho-illustration">
-              <svg viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustración de panchos con papitas doradas y destellos mágicos">
-                <defs>
-                  <linearGradient id="bunGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#e8b86d" />
-                    <stop offset="100%" stop-color="#c38436" />
-                  </linearGradient>
-                  <linearGradient id="sausageGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#cf5f48" />
-                    <stop offset="100%" stop-color="#9e3928" />
-                  </linearGradient>
-                </defs>
-
-                <!-- Bandeja de pergamino / hoja mágica -->
-                <ellipse cx="110" cy="128" rx="88" ry="26" fill="#2d5742" stroke="#d4a24c" stroke-width="2" />
-
-                <!-- Papitas crocantes detrás y alrededor -->
-                <g fill="#f4ca64" stroke="#b98126" stroke-width="1">
-                  <rect x="46" y="74" width="12" height="36" rx="3" transform="rotate(-18 52 92)" />
-                  <rect x="64" y="64" width="11" height="40" rx="3" transform="rotate(-6 70 84)" />
-                  <rect x="142" y="66" width="12" height="38" rx="3" transform="rotate(14 148 85)" />
-                  <rect x="158" y="78" width="11" height="34" rx="3" transform="rotate(26 164 95)" />
-                </g>
-
-                <!-- Pan inferior -->
-                <rect x="44" y="96" width="132" height="30" rx="15" fill="url(#bunGrad)" stroke="#8c581d" stroke-width="1.5" />
-                <!-- Salchicha -->
-                <rect x="34" y="82" width="152" height="24" rx="12" fill="url(#sausageGrad)" stroke="#6e2317" stroke-width="1.5" />
-                <!-- Pan superior borde -->
-                <path d="M46,98 Q110,110 174,98" fill="none" stroke="#f0c783" stroke-width="5" stroke-linecap="round" />
-
-                <!-- Mostaza y ketchup en zigzag -->
-                <path d="M52,88 Q64,80 76,88 T100,88 T124,88 T148,88 T168,88" fill="none" stroke="#f6d37a" stroke-width="3.5" stroke-linecap="round" />
-                <path d="M56,93 Q68,86 80,93 T104,93 T128,93 T152,93" fill="none" stroke="#b93e34" stroke-width="2.5" stroke-linecap="round" />
-
-                <!-- Lluvia de papitas encima -->
-                <g fill="#f7da84" stroke="#b98126" stroke-width="1">
-                  <rect x="74" y="66" width="7" height="22" rx="2" transform="rotate(28 77 77)" />
-                  <rect x="94" y="62" width="7" height="24" rx="2" transform="rotate(-15 97 74)" />
-                  <rect x="114" y="64" width="7" height="22" rx="2" transform="rotate(18 117 75)" />
-                  <rect x="132" y="68" width="7" height="20" rx="2" transform="rotate(-32 135 78)" />
-                </g>
-
-                <!-- Destellos mágicos -->
-                <g fill="#f6d37a">
-                  <path d="M36,42 L39,49 L46,52 L39,55 L36,62 L33,55 L26,52 L33,49 Z" />
-                  <path d="M180,36 L182,42 L188,44 L182,46 L180,52 L178,46 L172,44 L178,42 Z" />
-                  <circle cx="110" cy="40" r="3" fill="#7de2b8" />
-                </g>
-              </svg>
-            </figure>
-
-            <div class="result-copy">
-              <p class="fairy-quote" id="open-message">
-                “¡Gracias, humano! Ya puedo oler las papitas crocantes desde el claro del bosque.”
-              </p>
-              <p id="open-detail">
-                Podés ingresar al Reino Fae con el pedido. Seguí el sendero de hongos dorados hasta el sauce brillante.
-              </p>
-            </div>
-          </div>
-
-          <div class="actions-row">
-            <button type="button" class="btn-primary" id="btn-reset-open">
-              Realizar otro cruce
-            </button>
-          </div>
-        </article>
-
-        <!-- PANTALLA 5: PORTAL RECHAZADO -->
-        <article class="screen" id="screen-rejected" data-screen="rejected" hidden>
-          <header class="screen-header result-header-rejected">
-            <p class="status-pill status-pill--rejected">Portal Cerrado · Acceso Rechazado</p>
-            <h2 id="rejected-title">Sello Activado</h2>
-          </header>
-
-          <div class="rejected-box">
-            <p class="fairy-quote" id="rejected-message"></p>
-            <p class="rejected-reason" id="rejected-detail"></p>
-          </div>
-
-          <div class="actions-row">
-            <button type="button" class="btn-primary" id="btn-retry">
-              Volver a intentarlo
-            </button>
-          </div>
-        </article>
-      </section>
-    </main>
-
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>
