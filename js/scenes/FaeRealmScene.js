@@ -1,6 +1,6 @@
 import { registerPixelAssets } from "../pixelSprites.js";
 import { PlayerController } from "../playerController.js";
-import { toggleWings } from "../gameState.js";
+import { isCocaColaActive, toggleWings } from "../gameState.js";
 
 export class FaeRealmScene extends Phaser.Scene {
   constructor() {
@@ -122,7 +122,7 @@ export class FaeRealmScene extends Phaser.Scene {
         padding: { x: 8, y: 3 },
       })
       .setOrigin(0.5)
-      .setDepth(22);
+      .setDepth(1000);
 
     this.interactPrompt = this.add
       .text(this.fairyX, this.fairyY + 46, "Presioná ESPACIO para interactuar", {
@@ -133,11 +133,12 @@ export class FaeRealmScene extends Phaser.Scene {
         padding: { x: 10, y: 4 },
       })
       .setOrigin(0.5)
-      .setDepth(25)
+      .setDepth(1000)
       .setVisible(false);
 
-    // Repartidor con alitas ya equipadas
+    // Repartidor con alitas ya equipadas y estado de Coca-Cola conservado
     this.player = new PlayerController(this, 190, 376, state.wingsEquipped);
+    this.player.setPowerUpActive(isCocaColaActive(state));
     this.physics.add.collider(this.player.sprite, this.obstacles);
     this.physics.add.collider(this.player.sprite, this.fairy);
 
@@ -210,15 +211,19 @@ export class FaeRealmScene extends Phaser.Scene {
   update() {
     this.player.update();
 
+    const state = this.registry.get("missionState");
+    const uiBridge = this.registry.get("uiBridge");
+
+    // Sincronizar potenciador Coca-Cola entre escenas y restablecer al expirar
+    this.player.setPowerUpActive(isCocaColaActive(state));
+    uiBridge.syncPowerUpHUD();
+
     const dist = Phaser.Math.Distance.Between(
       this.player.sprite.x,
       this.player.sprite.y,
       this.fairyX,
       this.fairyY
     );
-
-    const state = this.registry.get("missionState");
-    const uiBridge = this.registry.get("uiBridge");
     this.nearFairy = dist <= 105 && !state.missionCompleted && !uiBridge.isModalOpen();
     this.interactPrompt.setVisible(this.nearFairy);
 

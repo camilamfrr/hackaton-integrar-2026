@@ -98,6 +98,10 @@ body {
   color: var(--portal-emerald);
 }
 
+.hud-value[data-active="true"] {
+  color: #ff8a80;
+}
+
 /* Contenedor del Canvas Phaser */
 .viewport-frame {
   position: relative;

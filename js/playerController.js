@@ -12,7 +12,12 @@ export class PlayerController {
    */
   constructor(scene, x, y, wingsEquipped = false) {
     this.scene = scene;
-    this.speed = 185;
+    this.baseSpeed = 185;
+    this.boostSpeed = 270;
+    this.baseScale = 2;
+    this.boostScale = 2.45;
+    this.speed = this.baseSpeed;
+    this.powerUpActive = false;
     this.movementLocked = false;
     this.isFern = false;
     this.facing = "down";
@@ -47,10 +52,11 @@ export class PlayerController {
   setWingsEquipped(equipped, playBurst = false) {
     this.wings.setVisible(Boolean(equipped));
     if (playBurst) {
+      const currentScale = this.powerUpActive ? this.boostScale : this.baseScale;
       this.scene.tweens.add({
         targets: [this.sprite, this.wings],
-        scaleX: 2.22,
-        scaleY: 2.22,
+        scaleX: currentScale * 1.12,
+        scaleY: currentScale * 1.12,
         duration: 130,
         yoyo: true,
         ease: "Quad.easeOut",
@@ -74,6 +80,31 @@ export class PlayerController {
     if (this.movementLocked) {
       this.sprite.setVelocity(0, 0);
       this.sprite.anims.stop();
+    }
+  }
+
+  /**
+   * Activa o desactiva el potenciador de Coca-Cola (velocidad y tamaño),
+   * manteniendo una hitbox compacta para evitar atascos en colisiones.
+   */
+  setPowerUpActive(active) {
+    const next = Boolean(active);
+    if (this.powerUpActive === next) return;
+    this.powerUpActive = next;
+
+    this.speed = next ? this.boostSpeed : this.baseSpeed;
+    const targetScale = next ? this.boostScale : this.baseScale;
+
+    this.sprite.setScale(targetScale);
+    this.wings.setScale(targetScale);
+
+    if (next) {
+      // Mantener hitbox física en mundo equivalente a ~36x24px para no enganchar obstáculos
+      this.sprite.body.setSize(14, 10);
+      this.sprite.body.setOffset(9, 20);
+    } else {
+      this.sprite.body.setSize(18, 12);
+      this.sprite.body.setOffset(7, 19);
     }
   }
 

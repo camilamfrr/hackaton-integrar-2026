@@ -1,8 +1,10 @@
 import { registerPixelAssets } from "../pixelSprites.js";
 import { PlayerController } from "../playerController.js";
 import {
+  activateCocaCola,
   collectWings,
   evaluatePortalAccess,
+  isCocaColaActive,
   toggleWings,
 } from "../gameState.js";
 
@@ -84,7 +86,41 @@ export class PrepAndPortalScene extends Phaser.Scene {
           padding: { x: 8, y: 4 },
         })
         .setOrigin(0.5)
-        .setDepth(25)
+        .setDepth(1000)
+        .setVisible(false);
+    }
+
+    // Lata de Coca-Cola escondida en el escenario inicial
+    this.cocaX = 410;
+    this.cocaY = 415;
+    this.cocaPickup = null;
+    this.cocaPrompt = null;
+
+    if (!state.cocaColaCollected) {
+      this.cocaPickup = this.add
+        .image(this.cocaX, this.cocaY, "coca_cola")
+        .setScale(2)
+        .setDepth(8);
+
+      this.tweens.add({
+        targets: this.cocaPickup,
+        y: this.cocaY - 5,
+        duration: 850,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
+
+      this.cocaPrompt = this.add
+        .text(this.cocaX, this.cocaY - 34, "E — TOMAR COCA-COLA", {
+          fontFamily: "Cinzel, Georgia, serif",
+          fontSize: "12px",
+          color: "#ffffff",
+          backgroundColor: "#c91c2b",
+          padding: { x: 8, y: 4 },
+        })
+        .setOrigin(0.5)
+        .setDepth(1000)
         .setVisible(false);
     }
 
@@ -120,6 +156,7 @@ export class PrepAndPortalScene extends Phaser.Scene {
 
     // Repartidor controlable (inicia sin alitas)
     this.player = new PlayerController(this, 155, height / 2 + 12, state.wingsEquipped);
+    this.player.setPowerUpActive(isCocaColaActive(state));
     this.physics.add.collider(this.player.sprite, this.obstacles);
 
     // Zona de detección del portal
@@ -168,12 +205,47 @@ export class PrepAndPortalScene extends Phaser.Scene {
     }
   }
 
-  handleWingsInteraction() {
+  handleEKeyInteraction() {
     const state = this.registry.get("missionState");
     const uiBridge = this.registry.get("uiBridge");
     if (uiBridge.isModalOpen() || this.transitioning) return;
 
-    // Caso 1: Todavía no fueron recogidas -> solo recoger si está suficientemente cerca
+    // Prioridad 1: Recoger Coca-Cola si está cerca
+    if (!state.cocaColaCollected && this.cocaPickup) {
+      const cocaDist = Phaser.Math.Distance.Between(
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.cocaX,
+        this.cocaY
+      );
+      if (cocaDist <= 75) {
+        activateCocaCola(state);
+        this.cocaPickup.destroy();
+        this.cocaPickup = null;
+        if (this.cocaPrompt) {
+          this.cocaPrompt.destroy();
+          this.cocaPrompt = null;
+        }
+
+        const burst = this.add.particles(this.cocaX, this.cocaY, "sparkle", {
+          speed: { min: 35, max: 90 },
+          scale: { start: 1.8, end: 0 },
+          lifespan: 450,
+          quantity: 12,
+          emitting: false,
+        });
+        burst.setDepth(20);
+        burst.explode(12);
+        this.time.delayedCall(500, () => burst.destroy());
+
+        this.player.setPowerUpActive(true);
+        uiBridge.syncPowerUpHUD();
+        uiBridge.showToast("¡Coca-Cola! Velocidad y tamaño aumentados por 45 segundos.", "success");
+        return;
+      }
+    }
+
+    // Prioridad 2: Recoger alitas si está cerca
     if (!state.wingsCollected) {
       if (!this.wingsPickup) return;
       const dist = Phaser.Math.Distance.Between(
@@ -267,6 +339,11 @@ export class PrepAndPortalScene extends Phaser.Scene {
     const state = this.registry.get("missionState");
     const uiBridge = this.registry.get("uiBridge");
 
+    // Sincronizar potenciador Coca-Cola y restablecer al expirar los 45s
+    const powerActive = isCocaColaActive(state);
+    this.player.setPowerUpActive(powerActive);
+    uiBridge.syncPowerUpHUD();
+
     // Proximidad al objeto de alitas en el suelo
     if (!state.wingsCollected && this.wingsPickup && this.wingsPrompt) {
       const dist = Phaser.Math.Distance.Between(
@@ -278,8 +355,19 @@ export class PrepAndPortalScene extends Phaser.Scene {
       this.wingsPrompt.setVisible(dist <= 75 && !uiBridge.isModalOpen());
     }
 
+    // Proximidad a la lata de Coca-Cola
+    if (!state.cocaColaCollected && this.cocaPickup && this.cocaPrompt) {
+      const dist = Phaser.Math.Distance.Between(
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.cocaX,
+        this.cocaY
+      );
+      this.cocaPrompt.setVisible(dist <= 75 && !uiBridge.isModalOpen());
+    }
+
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
-      this.handleWingsInteraction();
+      this.handleEKeyInteraction();
     }
   }
 }

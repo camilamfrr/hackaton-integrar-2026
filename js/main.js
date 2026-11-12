@@ -1,6 +1,7 @@
 import {
   createMissionState,
   deliverOnePancho,
+  getCocaColaRemainingSeconds,
   getPendingCount,
   submitMagicWord,
 } from "./gameState.js";
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const hudOrder = document.getElementById("hud-order");
   const hudPending = document.getElementById("hud-pending");
   const hudWings = document.getElementById("hud-wings");
+  const hudPowerup = document.getElementById("hud-powerup");
   const hudPortal = document.getElementById("hud-portal");
 
   const prepBar = document.getElementById("prep-bar");
@@ -47,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const gameToast = document.getElementById("game-toast");
   let toastTimeoutId = null;
+  let lastPowerActive = false;
+  let lastPowerText = "";
 
   function getActiveScene() {
     if (!window.chunkeroGame) return null;
@@ -102,6 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hudPortal.textContent = missionState.orderStatus;
     hudPortal.dataset.open = String(missionState.portalOpen || missionState.inFaeRealm);
 
+    uiBridge.syncPowerUpHUD();
+
     introFairyName.textContent = missionState.fairyName;
     introOrderCount.textContent = `${missionState.requestedCount} panchos con papitas`;
 
@@ -114,6 +120,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const uiBridge = {
     isModalOpen,
     showToast,
+    syncPowerUpHUD() {
+      const remaining = getCocaColaRemainingSeconds(missionState);
+      const active = remaining > 0;
+      const nextText = active ? `${remaining}s (Turbo)` : "Inactivo";
+      if (nextText !== lastPowerText) {
+        lastPowerText = nextText;
+        hudPowerup.textContent = nextText;
+        hudPowerup.dataset.active = String(active);
+      }
+      if (lastPowerActive && !active) {
+        showToast("Se terminó el efecto de la Coca-Cola. Volvés a tu tamaño y velocidad normales.", "info");
+      }
+      lastPowerActive = active;
+    },
     onWingsUpdated() {
       updateHUD();
       if (missionState.portalOpen) {
@@ -252,6 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnRestartGame.addEventListener("click", () => {
     missionState = createMissionState();
+    lastPowerActive = false;
+    lastPowerText = "";
     game.registry.set("missionState", missionState);
 
     inputMagicWord.value = "";

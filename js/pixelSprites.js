@@ -224,6 +224,22 @@ export function registerPixelAssets(scene) {
   createSpritesheetFromCanvas(scene, "fairy", 20, 20, 2, drawFairyFrame);
   createSpritesheetFromCanvas(scene, "portal", 48, 48, 4, drawPortalFrame);
 
+  // Lata de Coca-Cola pixel art (16x22)
+  createCanvasTexture(scene, "coca_cola", 16, 22, (ctx) => {
+    px(ctx, 3, 19, 10, 2, "rgba(0,0,0,0.32)");
+    // Tapa y base metálica
+    px(ctx, 4, 2, 8, 2, "#cfd8dc");
+    px(ctx, 5, 1, 6, 1, "#eceff1");
+    px(ctx, 4, 18, 8, 2, "#b0bec5");
+    // Cuerpo rojo
+    px(ctx, 3, 4, 10, 14, "#d91c24");
+    px(ctx, 4, 5, 2, 12, "#f2444b"); // brillo lateral
+    // Franja blanca característica
+    px(ctx, 3, 9, 4, 2, "#ffffff");
+    px(ctx, 6, 10, 4, 2, "#ffffff");
+    px(ctx, 9, 9, 4, 2, "#ffffff");
+  });
+
   // Helecho mágico (32x32) para la transformación al cruzar sin alitas
   createCanvasTexture(scene, "fern", 32, 32, (ctx) => {
     px(ctx, 8, 27, 16, 3, "rgba(0,0,0,0.35)");

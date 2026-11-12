@@ -6,6 +6,7 @@
 export const MAGIC_WORD = "CHUNKERO";
 export const FAIRY_NAME = "Lumina del Claro";
 export const ORDER_QUANTITIES = [2, 3, 5];
+export const COCA_COLA_DURATION_MS = 45000;
 
 export function normalizeMagicWord(rawInput) {
   if (typeof rawInput !== "string") return "";
@@ -29,6 +30,8 @@ export function createMissionState(forcedQuantity) {
     deliveredCount: 0,
     wingsCollected: false,
     wingsEquipped: false,
+    cocaColaCollected: false,
+    cocaColaExpiresAt: null,
     magicWordValid: false,
     lastWordAttempt: "",
     transformedIntoFern: false,
@@ -60,6 +63,38 @@ export function toggleWings(state) {
   state.wingsEquipped = !state.wingsEquipped;
   updatePortalReadiness(state);
   return { changed: true, equipped: state.wingsEquipped };
+}
+
+/**
+ * Activa el potenciador de Coca-Cola por un máximo de 45 segundos.
+ * No acumula duración más allá de 45s ni multiplica efectos.
+ */
+export function activateCocaCola(state, nowMs = Date.now()) {
+  state.cocaColaCollected = true;
+  const maxAllowedExpiry = nowMs + COCA_COLA_DURATION_MS;
+  if (!state.cocaColaExpiresAt || state.cocaColaExpiresAt < nowMs) {
+    state.cocaColaExpiresAt = maxAllowedExpiry;
+  } else {
+    state.cocaColaExpiresAt = Math.min(state.cocaColaExpiresAt, maxAllowedExpiry);
+  }
+  return getCocaColaRemainingSeconds(state, nowMs);
+}
+
+/**
+ * Devuelve los segundos restantes del potenciador (0 si expiró).
+ */
+export function getCocaColaRemainingSeconds(state, nowMs = Date.now()) {
+  if (!state.cocaColaExpiresAt) return 0;
+  const remainingMs = state.cocaColaExpiresAt - nowMs;
+  if (remainingMs <= 0) {
+    state.cocaColaExpiresAt = null;
+    return 0;
+  }
+  return Math.min(45, Math.ceil(remainingMs / 1000));
+}
+
+export function isCocaColaActive(state, nowMs = Date.now()) {
+  return getCocaColaRemainingSeconds(state, nowMs) > 0;
 }
 
 export function submitMagicWord(state, rawInput) {
